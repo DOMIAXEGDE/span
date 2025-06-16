@@ -187,13 +187,13 @@
     sel.value = App.Model.FrameManager.idx;
   }
 
+
   function refreshAllVariables() {
     if (App.Palette.updateCSS) App.Palette.updateCSS();
     App.Model.FrameManager.frames.forEach(f => { f.dirty = true; });
     updateFrameSelector();
     App.util.announce('Variables refreshed across frames');
   }
-
 
   // ---------- Palette ----------
   App.Palette = (function() {
@@ -215,7 +215,9 @@
     function get(i){return base[i]||base[0];}
     function add(c){base.push(c);updateCSS();subs.forEach(fn=>fn(c));return base.length-1;}
     function on(fn){subs.push(fn);}
+
     return { init, get, add, on, updateCSS, get colors(){return[...base]} };
+
   })();
 
   // ---------- Logger ----------
@@ -1175,7 +1177,9 @@
       document.getElementById('btn-newFrame').onclick = () => showNewFrameDialog();
       document.getElementById('btn-export').onclick = () => App.View.CanvasRenderer.exportAsPNG();
       document.getElementById('btn-import').onclick = importSessionDialog;
+
       document.getElementById('btn-refreshVars').onclick = refreshAllVariables;
+
       document.getElementById('sel-frame').onchange = e => {
         const idx = parseInt(e.target.value, 10);
         if(!isNaN(idx)) {
