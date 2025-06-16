@@ -1,0 +1,58 @@
+body {
+  margin: 0;
+  font-family: "Times New Roman", serif;
+  background-color: #fdf6e3;
+  color: #333;
+}
+
+#toolbar {
+  background: #c2b280;
+  padding: 5px;
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  color: #000;
+}
+
+#canvasWrap {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 40px);
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #fff8e7;
+  outline: none;
+  border: 1px solid #c2b280;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  border: 0;
+}
+
+.paste-indicator {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #463c29;
+  color: #fff;
+  padding: 10px;
+  border-radius: 4px;
+  display: none;
+  pointer-events: none;
+}
+
+.paste-indicator.active {
+  display: block;
+}
