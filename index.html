@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SPAN Theoretic Engineering Science Editor</title>
-  <link rel="stylesheet" href="vintage.css">
+  <link rel="stylesheet" href="theme.css">
+
   <!-- Inline SVG sprite and metadata, script and styles inserted below -->
 </head>
 <body>
@@ -1151,7 +1152,10 @@
       c.oncontextmenu=e=>{
         e.preventDefault();
         const r=c.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
-        const hit=App.Model.FrameManager.current().hitTest(x,y);
+        const frame = App.Model.FrameManager.current();
+        if(!frame) return;
+        const hit=frame.hitTest(x,y);
+        if(!hit) return;
         if(hit.module){
           showCellMenu(hit,e.clientX,e.clientY);
         } else {
