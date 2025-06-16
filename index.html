@@ -1,0 +1,1604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SPAN Theoretic Engineering Science Editor</title>
+  <link rel="stylesheet" href="vintage.css">
+  <!-- Inline SVG sprite and metadata, script and styles inserted below -->
+</head>
+<body>
+  <div id="toolbar" role="toolbar">
+    <button id="btn-newFrame">New Frame</button>
+    <button id="btn-export">Export PNG</button>
+    <button id="btn-import">Import JSON</button>
+    <select id="sel-colour" aria-label="Colour palette"></select>
+    <span id="lbl-fps" aria-live="polite"></span>
+  </div>
+  <div id="canvasWrap">
+    <canvas id="c" tabindex="0" aria-label="Editable canvas grid"></canvas>
+  </div>
+  <div id="announcer" class="sr-only" aria-live="polite"></div>
+  <div id="paste-indicator" class="paste-indicator">Press Ctrl+V to paste image</div>
+
+  <!-- Inlined SVG symbols -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+    <symbol id="icon-split" viewBox="0 0 24 24"><path d="M4 7h16v2H4V7zm0 6h16v-2H4v2zm0 4h16v-2H4v2z"/></symbol>
+    <symbol id="icon-color" viewBox="0 0 24 24"><path d="M12 22C6.49 22 2 17.51 2 12S6.49 2 12 2s10 4.04 10 9c0 3.31-2.69 6-6 6h-1.77c-.28 0-.5.22-.5.5 0 .12.05.23.13.33.41.47.64 1.06.64 1.67A2.5 2.5 0 0 1 12 22zm0-18c-4.41 0-8 3.59-8 8s3.59 8 8 8c.28 0 .5-.22.5-.5a.54.54 0 0 0-.14-.35c-.41-.46-.63-1.05-.63-1.65a2.5 2.5 0 0 1 2.5-2.5H16c2.21 0 4-1.79 4-4 0-3.86-3.59-7-8-7z"/><circle cx="6.5" cy="11.5" r="1.5"/><circle cx="9.5" cy="7.5" r="1.5"/><circle cx="14.5" cy="7.5" r="1.5"/><circle cx="17.5" cy="11.5" r="1.5"/></symbol>
+    <symbol id="icon-text" viewBox="0 0 24 24"><path d="M2.5 4v3h5v12h3V7h5V4h-13zm19 5h-9v3h3v7h3v-7h3V9z"/></symbol>
+    <symbol id="icon-image" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></symbol>
+    <symbol id="icon-pointer" viewBox="0 0 24 24"><path d="M16 1H8C6.34 1 5 2.34 5 4v16c0 1.66 1.34 3 3 3h8c1.66 0 3-1.34 3-3V4c0-1.66-1.34-3-3-3zm-2 20h-4v-1h4v1zm3.25-3H6.75V4h10.5v14z"/></symbol>
+    <symbol id="icon-undo" viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></symbol>
+    <symbol id="icon-search" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></symbol>
+    <symbol id="icon-move" viewBox="0 0 24 24"><path d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 2l-5-5v3h-3v4h3v3l5-5zm-9 3h-4v3H7l5 5 5-5h-3v-3z"/></symbol>
+    <symbol id="icon-import" viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zm0-10h4v6h6v-6h4l-7-7-7 7z"/></symbol>
+    <symbol id="icon-font" viewBox="0 0 24 24"><path d="M9 4v3h5v12h3V7h5V4H9zm-6 8h3v7h3v-7h3V9H3v3z"/></symbol>
+    <symbol id="icon-paste" viewBox="0 0 24 24"><path d="M19 2h-4.18C14.4.84 13.3 0 12 0c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm7 18H5V4h2v3h10V4h2v16z"/></symbol>
+    <symbol id="icon-reset" viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></symbol>
+    <symbol id="icon-export" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></symbol>
+    <symbol id="icon-opacity" viewBox="0 0 24 24"><path d="M17.66 8L12 2.35 6.34 8C4.78 9.56 4 11.64 4 13.64s.78 4.11 2.34 5.67 3.61 2.35 5.66 2.35 4.1-.79 5.66-2.35S20 15.64 20 13.64 19.22 9.56 17.66 8zM6 14c.01-2 .62-3.27 1.76-4.4L12 5.27l4.24 4.38C17.38 10.77 17.99 12 18 14H6z"/></symbol>
+    <symbol id="icon-grid" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM8 20H4v-4h4v4zm0-6H4v-4h4v4zm0-6H4V4h4v4zm6 12h-4v-4h4v4zm0-6h-4v-4h4v4zm0-6h-4V4h4v4zm6 12h-4v-4h4v4zm0-6h-4v-4h4v4zm0-6h-4V4h4v4z"/></symbol>
+  </svg>
+
+  <script type="module">
+  // ---------- App Namespace & Util ----------
+  const App = {};
+
+  App.util = (function() {
+    function fuzzySearch(pattern, str) {
+      const patternLen = pattern.length;
+      const strLen = str.length;
+      if (patternLen > strLen) return false;
+      if (patternLen === 0) return true;
+      let patternIdx = 0;
+      let strIdx = 0;
+      const lowerPattern = pattern.toLowerCase();
+      const lowerStr = str.toLowerCase();
+      while (patternIdx < patternLen && strIdx < strLen) {
+        if (lowerPattern[patternIdx] === lowerStr[strIdx]) {
+          patternIdx++;
+        }
+        strIdx++;
+      }
+      return patternIdx === patternLen;
+    }
+    function createElement(tag, attrs = {}, children = []) {
+      const el = document.createElement(tag);
+      Object.entries(attrs).forEach(([k,v]) => {
+        if (k === 'className') el.className = v;
+        else if (k === 'dataset') Object.entries(v).forEach(([a,b]) => el.dataset[a] = b);
+        else if (k === 'style') Object.entries(v).forEach(([a,b]) => el.style[a] = b);
+        else if (k.startsWith('on') && typeof v === 'function') {
+          const eventName = k.slice(2);
+          el.addEventListener(eventName.toLowerCase(), v);
+        }
+        else el.setAttribute(k,v);
+      });
+      children.forEach(c => {
+        if (c === null || c === undefined) return;
+        typeof c === 'string' ? el.appendChild(document.createTextNode(c)) : el.appendChild(c);
+      });
+      return el;
+    }
+    function findFreePosition(frame, startX, startY, size) {
+      const directions = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+      let x = startX, y = startY;
+      let dirIndex = 0;
+      let steps = 1;
+      let stepCount = 0;
+      let moveCount = 0;
+      const m = new App.Model.Module(frame, x, y, size, 0);
+      if (!frame.checkCollision(m)) return {x, y};
+      while (x >= 0 && y >= 0 && x + size <= frame.cols && y + size <= frame.rows) {
+        x += directions[dirIndex][0];
+        y += directions[dirIndex][1];
+        stepCount++;
+        m.x = x;
+        m.y = y;
+        if (!frame.checkCollision(m)) return {x, y};
+        if (stepCount === steps) {
+          stepCount = 0;
+          dirIndex = (dirIndex + 1) % 4;
+          moveCount++;
+          if (moveCount === 2) {
+            moveCount = 0;
+            steps++;
+          }
+        }
+        if (steps > Math.max(frame.rows, frame.cols)) break;
+      }
+      return null;
+    }
+    function clamp(v,min,max){return Math.min(Math.max(v,min),max);}
+    function uid(){return 'u-'+Math.random().toString(36).slice(2,11);}
+    function sanitize(text){const d=document.createElement('div');d.textContent=text;return d.innerHTML;}
+    function announce(msg){document.getElementById('announcer').textContent=msg;}
+    function isGIF(dataUrl) {
+      return dataUrl.substring(0, 100).includes('R0lGODlh') || dataUrl.substring(0, 100).includes('data:image/gif');
+    }
+    function showLoadingIndicator(message) {
+      let loadingEl = document.getElementById('export-loading');
+      if (!loadingEl) {
+        loadingEl = document.createElement('div');
+        loadingEl.id = 'export-loading';
+        loadingEl.className = 'export-loading';
+        loadingEl.innerHTML = `
+          <div class="export-loading-content">
+            <div class="export-spinner"></div>
+            <div id="export-loading-message">${message || 'Loading...'}</div>
+          </div>
+        `;
+        document.body.appendChild(loadingEl);
+      } else {
+        const messageEl = document.getElementById('export-loading-message');
+        if (messageEl) {
+          messageEl.textContent = message || 'Loading...';
+        }
+        loadingEl.style.display = 'flex';
+      }
+    }
+    function hideLoadingIndicator() {
+      const loadingEl = document.getElementById('export-loading');
+      if (loadingEl) {
+        loadingEl.style.display = 'none';
+      }
+    }
+    function clearTooltips() {
+      document.querySelectorAll('.pointer-tooltip, .pointer-hover').forEach(el => el.remove());
+    }
+    function prepareCellForPaste(hit) {
+      const focusedElement = document.querySelector('.cell-paste-focus');
+      if (focusedElement) {
+        focusedElement.classList.remove('cell-paste-focus');
+      }
+      window.activeQuadratePasteTarget = hit;
+      const pasteIndicator = document.getElementById('paste-indicator');
+      pasteIndicator.classList.add('active');
+      setTimeout(() => {
+        pasteIndicator.classList.remove('active');
+      }, 3000);
+    }
+    return {
+      fuzzySearch, createElement, findFreePosition, clamp, uid,
+      sanitize, announce, isGIF, clearTooltips,
+      showLoadingIndicator, hideLoadingIndicator, prepareCellForPaste
+    };
+  })();
+
+
+  // ---------- Palette ----------
+  App.Palette = (function() {
+    const base = ["#141414","#FFFFFF","#FF3366","#00B0FF","#FFD600","#4CAF50","#795548","#9C27B0","#FF9800","#607D8B"];
+    const subs = [];
+    function init(){
+      const sel=document.getElementById('sel-colour');
+      base.forEach((c,i)=>{
+        const o=document.createElement('option');
+        o.value=i; o.textContent=`Color ${i}`; o.style.backgroundColor=c;
+        sel.appendChild(o);
+      });
+      updateCSS();
+    }
+    function updateCSS(){
+      const root=document.documentElement;
+      base.forEach((c,i)=>root.style.setProperty(`--c-${i}`,c));
+    }
+    function get(i){return base[i]||base[0];}
+    function add(c){base.push(c);updateCSS();subs.forEach(fn=>fn(c));return base.length-1;}
+    function on(fn){subs.push(fn);}
+    return { init, get, add, on, get colors(){return[...base]} };
+  })();
+
+  // ---------- Logger ----------
+  App.Logger = (function(){
+    const lim = parseInt(new URLSearchParams(location.search).get('log'))||5000;
+    let L=[];
+    function log(type,data={}){
+      L.push({t:Date.now(),type,...data});
+      if(L.length>lim) L=L.slice(-lim);
+    }
+    function entries(){return[...L];}
+    function clear(){L=[];}
+    return { log, entries, clear };
+  })();
+
+  // ---------- Media Manager (for images/GIFs) ----------
+  App.Media = (function() {
+    const store = new Map();
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const animating = new Set();
+    let animationId = null;
+    function addImage(id, dataUrl, isAnimated) {
+      store.set(id, { dataUrl, isAnimated, frames: null });
+      if (isAnimated && !reducedMotion) {
+        const img = new Image();
+        img.onload = () => { extractGifFrames(id, img); };
+        img.src = dataUrl;
+        if (!animationId && !reducedMotion) { startAnimationLoop(); }
+      }
+      return id;
+    }
+    function extractGifFrames(id, img) {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+      const firstFrame = canvas.toDataURL('image/png');
+      const frames = [
+        { data: firstFrame, delay: 100 },
+        { data: store.get(id).dataUrl, delay: 100 }
+      ];
+      store.get(id).frames = frames;
+      animating.add(id);
+    }
+    function startAnimationLoop() {
+      let lastTime = 0;
+      const animate = (time) => {
+        const delta = time - lastTime;
+        if (delta > 100) {
+          animating.forEach(id => {
+            const media = store.get(id);
+            if (media && media.frames) {
+              const frame = media.frames.shift();
+              media.frames.push(frame);
+              media.currentFrame = frame.data;
+            }
+          });
+          lastTime = time;
+        }
+        animationId = requestAnimationFrame(animate);
+      };
+      animationId = requestAnimationFrame(animate);
+    }
+    function stopAnimationLoop() {
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+      }
+    }
+    function get(id) {
+      const media = store.get(id);
+      if (!media) return null;
+      if (media.isAnimated) {
+        if (reducedMotion) {
+          return media.frames ? media.frames[0].data : media.dataUrl;
+        }
+        return media.currentFrame || media.dataUrl;
+      }
+      return media.dataUrl;
+    }
+    return {
+      addImage,
+      get,
+      has: (id) => store.has(id),
+      remove: (id) => { animating.delete(id); return store.delete(id); },
+      get isReducedMotion() { return reducedMotion; }
+    };
+  })();
+
+  // ---------- Model: QuadTree, Module, Frame, FrameManager ----------
+  App.Model = (function(){
+    class QuadTree {
+      constructor(depth=0){
+        this.depth=depth;
+        let tot=0;
+        for(let i=0;i<=depth;i++)tot+=4**i;
+        this.cells=Array(tot).fill().map(()=>({bg:0,font:null,img:null,pointer:null}));
+      }
+      _offset(d){
+        let o=0;for(let i=0;i<d;i++)o+=4**i;return o;
+      }
+      getCell(d,x,y){
+        if(d>this.depth)return null;
+        const per=2**d,off=this._offset(d),idx=y*per+x;
+        return this.cells[off+idx]||null;
+      }
+      setProp(d,x,y,k,v){
+        const c=this.getCell(d,x,y);
+        if(c){c[k]=v;return true;} return false;
+      }
+    }
+    class Module {
+      constructor(frame,x,y,size=1,depth=0){
+        this.id='m-'+App.util.uid();
+        this.frame=frame; this.x=x; this.y=y; this.size=size;
+        this.depth=Math.min(depth,4);
+        this.qt=new QuadTree(this.depth);
+        this.history=[];
+        this.save();
+      }
+      containsPoint(gx,gy){
+        return gx>=this.x&&gx<this.x+this.size&&gy>=this.y&&gy<this.y+this.size;
+      }
+      gridToCell(gx,gy){
+        const rx=gx-this.x, ry=gy-this.y;
+        if(rx<0||ry<0||rx>=this.size||ry>=this.size)return null;
+        for(let d=this.depth;d>=0;d--){
+          const cs=this.size/(2**d),cx=Math.floor(rx/cs),cy=Math.floor(ry/cs);
+          const cell=this.qt.getCell(d,cx,cy);
+          if(cell)return {depth:d,x:cx,y:cy,cell};
+        }
+        return null;
+      }
+      split(){
+        if(this.depth>=4)return false;
+        this.save();this.depth++;
+        const old=this.qt;this.qt=new QuadTree(this.depth);
+        this.qt.cells=old.cells.map(c=>({...c}));
+        this.frame.dirty=true;return true;
+      }
+      save(){
+        const snap={x:this.x,y:this.y,size:this.size,depth:this.depth,cells:this.qt.cells.map(c=>({...c}))};
+        this.history.push(snap);
+        if(this.history.length>10)this.history.shift();
+      }
+      undo(){
+        if(this.history.length<2)return false;
+        this.history.pop();
+        const p=this.history[this.history.length-1];
+        Object.assign(this,p);
+        this.qt=new QuadTree(this.depth);this.qt.cells=p.cells.map(c=>({...c}));
+        this.frame.dirty=true;return true;
+      }
+      move(newX, newY) {
+        this.save();
+        this.x = newX; this.y = newY;
+        this.frame._updateHash(this);
+        this.frame.dirty = true;
+        return true;
+      }
+      collidesWith(o){
+        if(this.x+this.size<=o.x||o.x+o.size<=this.x||this.y+this.size<=o.y||o.y+o.size<=this.y)
+          return false;
+        return true;
+      }
+      resetCell(d, x, y) {
+        this.save();
+        const cell = this.qt.getCell(d, x, y);
+        if (cell) {
+          cell.font = null;
+          cell.img = null;
+          cell.pointer = null;
+          this.frame.dirty = true;
+          return true;
+        }
+        return false;
+      }
+    }
+
+    class Frame {
+      constructor(rows=32,cols=32,cellSize=20){
+        this.id='f-'+App.util.uid();
+        this.rows=rows;this.cols=cols;this.cellSize=cellSize;
+        this.modules=[];this.dirty=true;this.hash={};
+      }
+      _hashKeys(m){
+        const sz=16, sx=Math.floor(m.x/sz), sy=Math.floor(m.y/sz),
+              ex=Math.floor((m.x+m.size-1)/sz), ey=Math.floor((m.y+m.size-1)/sz);
+        const S=new Set();
+        for(let x=sx;x<=ex;x++)for(let y=sy;y<=ey;y++)S.add(`${x},${y}`);
+        return [...S];
+      }
+      addModule(m){
+        const coll=this.checkCollision(m);
+        if(coll)return {success:false,collision:coll};
+        this.modules.push(m);this._updateHash(m);this.dirty=true;return{success:true};
+      }
+      removeModule(id){
+        const i=this.modules.findIndex(m=>m.id===id);
+        if(i!==-1){
+          this._removeHash(this.modules[i]);
+          this.modules.splice(i,1);
+          this.dirty=true;
+          return true;
+        }
+        return false;
+      }
+      checkCollision(m){
+        for(const key of this._hashKeys(m)){
+          const arr=this.hash[key]||[];
+          for(const mid of arr){
+            if(mid!==m.id){
+              const other=this.modules.find(x=>x.id===mid);
+              if(other&&m.collidesWith(other))return other;
+            }
+          }
+        }
+        return null;
+      }
+      _updateHash(m){
+        this._removeHash(m);
+        for(const k of this._hashKeys(m)){
+          (this.hash[k]||(this.hash[k]=[])).push(m.id);
+        }
+      }
+      _removeHash(m){
+        for(const k in this.hash){
+          const arr=this.hash[k],i=arr.indexOf(m.id);
+          if(i!==-1){arr.splice(i,1);if(!arr.length)delete this.hash[k];}
+        }
+      }
+      hitTest(px,py){
+        const gx=Math.floor(px/this.cellSize), gy=Math.floor(py/this.cellSize);
+        if(gx<0||gy<0||gx>=this.cols||gy>=this.rows)return null;
+        const key=`${Math.floor(gx/16)},${Math.floor(gy/16)}`;
+        const bucket=this.hash[key]||[];
+        for(let i=this.modules.length-1;i>=0;i--){
+          const m=this.modules[i];
+          if(m.containsPoint(gx,gy)){
+            const ci=m.gridToCell(gx,gy);
+            return {...ci,module:m,gridX:gx,gridY:gy};
+          }
+        }
+        return {gridX:gx,gridY:gy};
+      }
+      search(query) {
+        if (!query.trim()) return [];
+        const results = [];
+        this.modules.forEach((module, moduleIndex) => {
+          for (let d = 0; d <= module.depth; d++) {
+            const per = 2 ** d;
+            for (let y = 0; y < per; y++) {
+              for (let x = 0; x < per; x++) {
+                const cell = module.qt.getCell(d, x, y);
+                if (cell.font && cell.font.txt && 
+                    App.util.fuzzySearch(query, cell.font.txt)) {
+                  results.push({
+                    type: 'text',
+                    text: cell.font.txt,
+                    color: cell.bg,
+                    frameIdx: App.Model.FrameManager.frames.findIndex(f => f.id === this.id),
+                    moduleId: module.id,
+                    moduleIdx: moduleIndex,
+                    x: module.x + (module.size / per) * x,
+                    y: module.y + (module.size / per) * y,
+                    depth: d, cellX: x, cellY: y
+                  });
+                }
+              }
+            }
+          }
+        });
+        return results;
+      }
+    }
+
+    const FrameManager = {
+      frames:[], idx:0,
+      create(rows=32,cols=32,cellSize=20){
+        const f=new Frame(rows,cols,cellSize);
+        this.frames.push(f); this.idx=this.frames.length-1;
+        App.Logger.log('createFrame',{id:f.id,index:this.idx, rows, cols, cellSize});
+        return f;
+      },
+      current(){return this.frames[this.idx]||null;},
+      switch(i){
+        if(i>=0&&i<this.frames.length){
+          this.idx=i; this.current().dirty=true;
+          App.Logger.log('switchFrame',{index:i});
+          App.util.announce(`Switched to frame ${i}`);
+          return true;
+        }
+        return false;
+      },
+      clear(){
+        this.frames = [];
+        this.idx = 0;
+      },
+      search(query) {
+        return this.frames.flatMap((frame, frameIdx) => {
+          const results = frame.search(query);
+          results.forEach(r => r.frameIdx = frameIdx);
+          return results;
+        });
+      },
+      goto(frameIdx, x, y) {
+        if (this.switch(frameIdx)) {
+          return true;
+        }
+        return false;
+      }
+    };
+
+    return { QuadTree, Module, Frame, FrameManager };
+  })();
+
+  // ---------- View: CanvasRenderer, Menus, Overlays ----------
+  App.View = (function(){
+    const CR = {
+      canvas:null,ctx:null,off:null,offCtx:null,
+      lastFrameTime: 0,
+      frameCounter: 0,
+      fpsUpdateTime: 0,
+      hoverInfo: null,
+      init(){
+        this.canvas=document.getElementById('c');
+        this.ctx=this.canvas.getContext('2d');
+        this.off=document.createElement('canvas');
+        this.offCtx=this.off.getContext('2d');
+        this.resize();
+        window.addEventListener('resize',()=>this.resize());
+        this.canvas.addEventListener('mousemove', this.handleMouseMove.bind(this));
+        this.canvas.addEventListener('mouseleave', () => {
+          this.hoverInfo = null;
+          App.util.clearTooltips();
+        });
+      },
+      resize(){
+        const w=document.getElementById('canvasWrap').clientWidth;
+        const h=document.getElementById('canvasWrap').clientHeight;
+        this.canvas.width=w; this.canvas.height=h;
+        App.Model.FrameManager.frames.forEach(f=>f.dirty=true);
+      },
+      handleMouseMove(e) {
+        const r = this.canvas.getBoundingClientRect();
+        const x = e.clientX - r.left, y = e.clientY - r.top;
+        const frame = App.Model.FrameManager.current();
+        if (!frame) return;
+        const hit = frame.hitTest(x, y);
+        if (hit && hit.cell && hit.cell.pointer) {
+          if (!this.hoverInfo || this.hoverInfo.moduleId !== hit.module.id || 
+              this.hoverInfo.depth !== hit.depth || 
+              this.hoverInfo.x !== hit.x || this.hoverInfo.y !== hit.y) {
+            App.util.clearTooltips();
+            const cs = frame.cellSize;
+            const cellSize = hit.module.size * cs / (2 ** hit.depth);
+            const px = hit.module.x * cs + hit.x * cellSize;
+            const py = hit.module.y * cs + hit.y * cellSize;
+            const hover = App.util.createElement('div', {
+              className: 'pointer-hover',
+              style: {left: px + 'px', top: py + 'px', width: cellSize + 'px', height: cellSize + 'px'}
+            });
+            const frameIdx = App.Model.FrameManager.frames.findIndex(f => 
+              f.id === hit.cell.pointer.frame);
+            const tooltip = App.util.createElement('div', {
+              className: 'pointer-tooltip',
+              style: {left: (px + cellSize/2) + 'px', top: (py - 30) + 'px'}
+            }, [`Link to Frame ${frameIdx} (double-click to follow)`]);
+            document.getElementById('canvasWrap').appendChild(hover);
+            document.getElementById('canvasWrap').appendChild(tooltip);
+            this.hoverInfo = { moduleId: hit.module.id, depth: hit.depth, x: hit.x, y: hit.y };
+          }
+        } else if (this.hoverInfo) {
+          App.util.clearTooltips();
+          this.hoverInfo = null;
+        }
+      },
+      render(timestamp){
+        this.frameCounter++;
+        const elapsed = timestamp - this.fpsUpdateTime;
+        if (elapsed >= 1000) {
+          const fps = Math.round((this.frameCounter * 1000) / elapsed);
+          document.getElementById('lbl-fps').textContent = `${fps} FPS`;
+          this.frameCounter = 0;
+          this.fpsUpdateTime = timestamp;
+        }
+        const f=App.Model.FrameManager.current();
+        if(!f||!f.dirty)return;
+        const w=f.cols*f.cellSize, h=f.rows*f.cellSize;
+        if(this.off.width!==w||this.off.height!==h){
+          this.off.width=w; this.off.height=h;
+        }
+        this.offCtx.clearRect(0,0,w,h);
+        f.modules.forEach(m=>this.drawModule(this.offCtx,m,f.cellSize));
+        this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
+        this.ctx.drawImage(this.off,0,0);
+        f.dirty=false;
+        this.lastFrameTime = timestamp;
+      },
+      drawModule(ctx,m,cs){
+        const ox=m.x*cs, oy=m.y*cs, sw=m.size*cs, sh=sw;
+        for(let d=0;d<=m.depth;d++){
+          const per=2**d, sub=sw/per;
+          for(let cy=0;cy<per;cy++)for(let cx=0;cx<per;cx++){
+            const cell=m.qt.getCell(d,cx,cy);
+            const x=ox+cx*sub, y=oy+cy*sub;
+            ctx.fillStyle=App.Palette.get(cell.bg);
+            ctx.fillRect(x,y,sub,sub);
+            ctx.strokeStyle='rgba(0,0,0,0.2)';ctx.lineWidth=1;
+            ctx.strokeRect(x,y,sub,sub);
+            if(cell.img && App.Media.has(cell.img)){
+              const imageData = App.Media.get(cell.img);
+              if (imageData) {
+                const img = new Image();
+                img.src = imageData;
+                ctx.drawImage(img, x+2, y+2, sub-4, sub-4);
+              } else {
+                ctx.fillStyle='rgba(0,0,0,0.1)';
+                ctx.fillRect(x+4,y+4,sub-8,sub-8);
+                ctx.fillStyle='rgba(255,255,255,0.8)';
+                ctx.font='14px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+                ctx.fillText('🖼️',x+sub/2,y+sub/2);
+              }
+            }
+            if(cell.font&&cell.font.txt){
+              ctx.fillStyle=cell.font.col||'#000';
+              ctx.font=`${cell.font.size||14}px ${cell.font.face||'sans-serif'}`;
+              ctx.textAlign='center';ctx.textBaseline='middle';
+              ctx.fillText(cell.font.txt,x+sub/2,y+sub/2);
+            }
+            if(cell.pointer){
+              const ps=12,mg=6;
+              const px=x+sub-mg-ps/2, py=y+mg+ps/2;
+              ctx.fillStyle='rgba(255,64,0,0.8)';
+              ctx.beginPath();ctx.arc(px,py,ps/2,0,2*Math.PI);ctx.fill();
+              ctx.fillStyle='#fff';ctx.font='10px sans-serif';
+              ctx.textAlign='center';ctx.textBaseline='middle';
+              const fi=App.Model.FrameManager.frames.findIndex(fr=>fr.id===cell.pointer.frame);
+              ctx.fillText(fi.toString(),px,py);
+            }
+          }
+        }
+      },
+      exportAsPNG() {
+        App.util.showLoadingIndicator('Generating PNG...');
+        const frame = App.Model.FrameManager.current();
+        if (!frame) {
+          App.util.hideLoadingIndicator();
+          App.View.Overlays.show('Export Error', 'No frame to export', [{label: 'OK'}]);
+          return;
+        }
+        try {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          const width = frame.cols * frame.cellSize;
+          const height = frame.rows * frame.cellSize;
+          canvas.width = width;
+          canvas.height = height;
+          frame.modules.forEach(m => this.drawModule(ctx, m, frame.cellSize));
+          const dataUrl = canvas.toDataURL('image/png');
+          const link = document.createElement('a');
+          link.download = `span-frame-${App.Model.FrameManager.idx}.png`;
+          link.href = dataUrl;
+          link.click();
+          App.util.hideLoadingIndicator();
+          App.Logger.log('exportPNG', {frameIndex: App.Model.FrameManager.idx});
+        } catch (error) {
+          console.error('Error exporting PNG:', error);
+          App.util.hideLoadingIndicator();
+          App.View.Overlays.show('Export Error', 
+            'Failed to export PNG: ' + error.message, 
+            [{label: 'OK'}]
+          );
+        }
+      }
+    };
+
+    const Menus = {
+      active:null,
+      activeIndex: -1,
+      show(items,x,y){
+        this.close();
+        const m=App.util.createElement('div',{className:'context-menu',tabIndex:-1},[]);
+        items.forEach((it, idx) => {
+          if(it.type==='separator'){
+            m.appendChild(document.createElement('hr'));
+          } else {
+            const btn=App.util.createElement('button',{
+              onClick:()=>{
+                it.handler();
+                Menus.close();
+              },
+              onMouseenter:()=>{
+                Menus.activeIndex = idx;
+                Array.from(m.querySelectorAll('button')).forEach((b, i) => {
+                  if (i === idx) b.focus();
+                });
+              }
+            });
+            const iconDiv = document.createElement('div');
+            iconDiv.className = 'context-menu-icon';
+            if (it.icon) {
+              const svg = App.util.createElement('svg', {
+                width: 16, 
+                height: 16
+              }, [
+                App.util.createElement('use', {
+                  'xlink:href': `#icon-${it.icon}`
+                })
+              ]);
+              iconDiv.appendChild(svg);
+            } else if (it.emoji) {
+              iconDiv.textContent = it.emoji;
+            }
+            btn.appendChild(iconDiv);
+            const span = document.createElement('span');
+            span.textContent = it.label;
+            btn.appendChild(span);
+            m.appendChild(btn);
+          }
+        });
+        document.body.appendChild(m);
+        const r=m.getBoundingClientRect();
+        if(x+r.width>innerWidth)x=innerWidth-r.width-10;
+        if(y+r.height>innerHeight)y=innerHeight-r.height-10;
+        m.style.left=`${x}px`;m.style.top=`${y}px`;
+        requestAnimationFrame(()=>m.classList.add('visible'));
+        this.active=m;
+        this.activeIndex = 0;
+        setTimeout(() => {
+          const buttons = m.querySelectorAll('button');
+          if (buttons.length > 0) buttons[0].focus();
+        }, 50);
+        m.addEventListener('keydown', this.handleMenuKeydown);
+        setTimeout(()=>document.addEventListener('click',this.outside),10);
+      },
+      handleMenuKeydown(e) {
+        const buttons = Array.from(Menus.active.querySelectorAll('button'));
+        if (!buttons.length) return;
+        switch (e.key) {
+          case 'ArrowDown':
+            e.preventDefault();
+            Menus.activeIndex = (Menus.activeIndex + 1) % buttons.length;
+            buttons[Menus.activeIndex].focus();
+            break;
+          case 'ArrowUp':
+            e.preventDefault();
+            Menus.activeIndex = (Menus.activeIndex - 1 + buttons.length) % buttons.length;
+            buttons[Menus.activeIndex].focus();
+            break;
+          case 'Escape':
+            e.preventDefault();
+            Menus.close();
+            break;
+          case 'Enter':
+          case ' ':
+            e.preventDefault();
+            buttons[Menus.activeIndex].click();
+            break;
+        }
+      },
+      close(){
+        if (!this.active) return;
+        const menuEl = this.active;
+        this.active = null;
+        this.activeIndex = -1;
+        menuEl.removeEventListener('keydown', this.handleMenuKeydown);
+        document.removeEventListener('click', this.outside);
+        menuEl.classList.remove('visible');
+        menuEl.classList.add('hiding');
+        setTimeout(() => {
+          menuEl.remove();
+        }, 100);
+      },
+      outside(e){ 
+        if(Menus.active && !Menus.active.contains(e.target)) Menus.close(); 
+      }
+    };
+
+    const Overlays = {
+      active:null,
+      show(title,content,buttons){
+        this.close();
+        const ov=App.util.createElement('div',{className:'modal-overlay'});
+        const mc=App.util.createElement('div',{className:'modal-content'},[]);
+        mc.appendChild(App.util.createElement('h3',{},[title]));
+        if(typeof content==='string')mc.appendChild(App.util.createElement('p',{},[content]));
+        else mc.appendChild(content);
+        const bc=App.util.createElement('div',{className:'modal-buttons'},[]);
+        buttons.forEach(b=>{
+          const btn=App.util.createElement('button',{
+            className:b.primary?'primary':'secondary',
+            onClick:()=>{
+              if(b.handler)b.handler();
+              Overlays.close();
+            }
+          },[b.label]);
+          bc.appendChild(btn);
+        });
+        mc.appendChild(bc);ov.appendChild(mc);document.body.appendChild(ov);
+        this.active=ov;
+        const handleKeyDown = (e) => {
+          if (e.key === 'Escape') {
+            e.preventDefault();
+            Overlays.close();
+          }
+        };
+        document.addEventListener('keydown', handleKeyDown);
+        ov.addEventListener('click', (e) => {
+          if (e.target === ov) Overlays.close();
+        });
+        ov.cleanup = () => { document.removeEventListener('keydown', handleKeyDown); };
+      },
+      close(){ 
+        if (!this.active) return;
+        const overlayEl = this.active;
+        this.active = null;
+        if (overlayEl.cleanup) {
+          overlayEl.cleanup();
+        }
+        overlayEl.remove();
+      },
+      showSearch() {
+        this.close();
+        const overlay = App.util.createElement('div', {className: 'search-overlay'});
+        const searchBox = App.util.createElement('div', {className: 'search-box'});
+        const title = App.util.createElement('h3', {}, ['Search Across Frames']);
+        const searchInput = App.util.createElement('input', {
+          className: 'search-input',
+          placeholder: 'Type to search...',
+          autofocus: true,
+          onInput: (e) => performSearch(e.target.value)
+        });
+        const resultsContainer = App.util.createElement('div', { className: 'search-results' });
+        searchBox.appendChild(title);
+        searchBox.appendChild(searchInput);
+        searchBox.appendChild(resultsContainer);
+        overlay.appendChild(searchBox);
+        document.body.appendChild(overlay);
+        this.active = overlay;
+        setTimeout(() => searchInput.focus(), 100);
+        const handleKeyDown = (e) => {
+          if (e.key === 'Escape') {
+            e.preventDefault();
+            Overlays.close();
+          }
+        };
+        document.addEventListener('keydown', handleKeyDown);
+        overlay.addEventListener('click', (e) => {
+          if (e.target === overlay) Overlays.close();
+        });
+        overlay.cleanup = () => { document.removeEventListener('keydown', handleKeyDown); };
+        function performSearch(query) {
+          resultsContainer.innerHTML = '';
+          if (!query.trim()) return;
+          const results = App.Model.FrameManager.search(query);
+          if (results.length === 0) {
+            resultsContainer.appendChild(
+              App.util.createElement('div', { style: { padding: '20px', textAlign: 'center', color: '#666' } }, ['No results found'])
+            );
+            return;
+          }
+          results.forEach(result => {
+            const resultItem = App.util.createElement('div', {
+              className: 'search-result',
+              onClick: () => {
+                App.Model.FrameManager.goto(result.frameIdx, result.x, result.y);
+                Overlays.close();
+              }
+            }, [
+              App.util.createElement('div', {
+                className: 'search-result-color',
+                style: { backgroundColor: App.Palette.get(result.color) }
+              }),
+              App.util.createElement('div', { className: 'search-result-text' }, [result.text || 'Module']),
+              App.util.createElement('div', { className: 'search-result-location' }, [`Frame ${result.frameIdx}, Position (${result.x},${result.y})`])
+            ]);
+            resultsContainer.appendChild(resultItem);
+          });
+        }
+      },
+      showFontEditor(text, face, size, color, opacity, onSave) {
+        const content = App.util.createElement('div', {className: 'font-editor'}, [
+          App.util.createElement('label', {for: 'font-text'}, ['Text:']),
+          App.util.createElement('input', { id: 'font-text', type: 'text', value: text || '', onInput: updatePreview }),
+          App.util.createElement('label', {for: 'font-face'}, ['Font:']),
+          App.util.createElement('select', { id: 'font-face', onChange: updatePreview }, [
+            App.util.createElement('option', {value: 'sans-serif'}, ['Sans-serif']),
+            App.util.createElement('option', {value: 'serif'}, ['Serif']),
+            App.util.createElement('option', {value: 'monospace'}, ['Monospace']),
+            App.util.createElement('option', {value: 'cursive'}, ['Cursive']),
+            App.util.createElement('option', {value: 'fantasy'}, ['Fantasy'])
+          ]),
+          App.util.createElement('label', {for: 'font-size'}, ['Size:']),
+          App.util.createElement('input', { id: 'font-size', type: 'number', min: '8', max: '36', value: size || '14', onChange: updatePreview }),
+          App.util.createElement('label', {for: 'font-color'}, ['Color:']),
+          App.util.createElement('input', { id: 'font-color', type: 'color', value: color || '#000000', onChange: updatePreview }),
+          App.util.createElement('label', {for: 'font-opacity'}, ['Opacity:']),
+          App.util.createElement('input', { id: 'font-opacity', type: 'range', min: '0', max: '100', value: opacity || '100', onChange: updatePreview }),
+          App.util.createElement('div', {className: 'font-preview'}, ['Preview Text'])
+        ]);
+        if (face) {
+          const select = content.querySelector('#font-face');
+          for (let i = 0; i < select.options.length; i++) {
+            if (select.options[i].value === face) { select.selectedIndex = i; break; }
+          }
+        }
+        function updatePreview() {
+          const preview = content.querySelector('.font-preview');
+          const text = content.querySelector('#font-text').value || 'Preview Text';
+          const face = content.querySelector('#font-face').value;
+          const size = content.querySelector('#font-size').value;
+          const color = content.querySelector('#font-color').value;
+          const opacity = content.querySelector('#font-opacity').value / 100;
+          preview.style.fontFamily = face;
+          preview.style.fontSize = size + 'px';
+          preview.style.color = color;
+          preview.style.opacity = opacity;
+          preview.textContent = text;
+        }
+        setTimeout(updatePreview, 0);
+        this.show('Edit Text', content, [
+          {label: 'Cancel'},
+          {label: 'Save', primary: true, handler: () => {
+            const fontData = {
+              txt: content.querySelector('#font-text').value,
+              face: content.querySelector('#font-face').value,
+              size: parseInt(content.querySelector('#font-size').value),
+              col: content.querySelector('#font-color').value,
+              opacity: parseFloat(content.querySelector('#font-opacity').value) / 100
+            };
+            if (onSave && fontData.txt) onSave(fontData);
+          }}
+        ]);
+      },
+      showColorPicker(color, opacity, onSave) {
+        const content = App.util.createElement('div', {className: 'font-editor'}, [
+          App.util.createElement('label', {for: 'cell-color'}, ['Color:']),
+          App.util.createElement('input', { id: 'cell-color', type: 'color', value: color || '#FFFFFF', onChange: updatePreview }),
+          App.util.createElement('label', {for: 'cell-opacity'}, ['Opacity:']),
+          App.util.createElement('input', { id: 'cell-opacity', type: 'range', min: '0', max: '100', value: opacity || '100', onChange: updatePreview }),
+          App.util.createElement('div', { className: 'font-preview', style: { backgroundColor: color || '#FFFFFF', opacity: opacity / 100 || 1, height: '50px' } })
+        ]);
+        function updatePreview() {
+          const preview = content.querySelector('.font-preview');
+          const color = content.querySelector('#cell-color').value;
+          const opacity = content.querySelector('#cell-opacity').value / 100;
+          preview.style.backgroundColor = color;
+          preview.style.opacity = opacity;
+        }
+        this.show('Change Cell Color', content, [
+          {label: 'Cancel'},
+          {label: 'Apply', primary: true, handler: () => {
+            const colorData = {
+              color: content.querySelector('#cell-color').value,
+              opacity: parseFloat(content.querySelector('#cell-opacity').value) / 100
+            };
+            if (onSave) onSave(colorData);
+          }}
+        ]);
+      },
+      showFrameConfig(onSave) {
+        const content = App.util.createElement('div', {className: 'frame-config-form'}, [
+          App.util.createElement('label', {for: 'frame-rows'}, ['Rows:']),
+          App.util.createElement('input', { id: 'frame-rows', type: 'number', min: '4', max: '100', value: '32', onInput: updatePreview }),
+          App.util.createElement('label', {for: 'frame-cols'}, ['Columns:']),
+          App.util.createElement('input', { id: 'frame-cols', type: 'number', min: '4', max: '100', value: '32', onInput: updatePreview }),
+          App.util.createElement('label', {for: 'frame-cell-size'}, ['Cell Size (px):']),
+          App.util.createElement('input', { id: 'frame-cell-size', type: 'number', min: '10', max: '50', value: '20', onInput: updatePreview }),
+          App.util.createElement('div', { className: 'frame-config-preview', id: 'frame-preview' }, ['Frame size: 640 × 640 pixels'])
+        ]);
+        function updatePreview() {
+          const rows = parseInt(document.getElementById('frame-rows').value) || 32;
+          const cols = parseInt(document.getElementById('frame-cols').value) || 32;
+          const cellSize = parseInt(document.getElementById('frame-cell-size').value) || 20;
+          const width = cols * cellSize;
+          const height = rows * cellSize;
+          document.getElementById('frame-preview').textContent = `Frame size: ${width} × ${height} pixels`;
+        }
+        setTimeout(updatePreview, 0);
+        this.show('Create New Frame', content, [
+          {label: 'Cancel'},
+          {label: 'Create', primary: true, handler: () => {
+            const config = {
+              rows: parseInt(document.getElementById('frame-rows').value) || 32,
+              cols: parseInt(document.getElementById('frame-cols').value) || 32,
+              cellSize: parseInt(document.getElementById('frame-cell-size').value) || 20
+            };
+            if (onSave) onSave(config);
+          }}
+        ]);
+      }
+    };
+
+    function loop(ts){
+      App.View.CanvasRenderer.render(ts);
+      requestAnimationFrame(loop);
+    }
+
+    return {
+      CanvasRenderer: CR,
+      Menus,
+      Overlays,
+      start:()=>{CR.init();requestAnimationFrame(loop);}
+    };
+  })();
+
+  // ---------- Controller & Commands ----------
+  App.Controller = (function(){
+    const stack=[];
+    let dragState = null;
+    function exec(cmd){
+      const res=cmd.do();
+      if(cmd.undo)stack.push(cmd);
+      return res;
+    }
+    function undo(){ 
+      if(stack.length) {
+        const cmd = stack.pop();
+        cmd.undo();
+        App.Logger.log('undo', {command: cmd.name || 'unnamed'});
+      }
+    }
+    function cmdCreate(gx,gy,color){
+      const f=App.Model.FrameManager.current();
+      let m;
+      return {
+        name: 'create',
+        do:()=>{
+          m=new App.Model.Module(f,gx,gy,1,0);
+          m.qt.setProp(0,0,0,'bg',color);
+          const r=f.addModule(m);
+          if(r.success)App.Logger.log('create',{x:gx,y:gy,color});
+          return r;
+        },
+        undo:()=>{
+          const f2=App.Model.FrameManager.current();
+          f2.removeModule(m.id);
+        }
+      };
+    }
+    function cmdSplit(mid){
+      return {
+        name: 'split',
+        do:()=>{
+          const f=App.Model.FrameManager.current();
+          const m=f.modules.find(x=>x.id===mid);
+          if(m&&m.split())App.Logger.log('split',{id:mid,depth:m.depth});
+          return true;
+        },
+        undo:()=>{
+          const f=App.Model.FrameManager.current();
+          const m=f.modules.find(x=>x.id===mid);
+          if(m)m.undo();
+        }
+      };
+    }
+    function cmdSetColor(mid,d,x,y,ci){
+      return {
+        name: 'setColor',
+        do:()=>{
+          const f=App.Model.FrameManager.current();
+          const m=f.modules.find(x=>x.id===mid);
+          m.save();m.qt.setProp(d,x,y,'bg',ci);f.dirty=true;
+          App.Logger.log('setColor',{id:mid,d,x,y,ci});
+          return true;
+        },
+        undo:()=>{
+          const f=App.Model.FrameManager.current();
+          const m=f.modules.find(x=>x.id===mid);
+          m.undo();
+        }
+      };
+    }
+    function cmdSetText(mid,d,x,y,fontData){
+      return {
+        name: 'setText',
+        do:()=>{
+          const f=App.Model.FrameManager.current();
+          const m=f.modules.find(x=>x.id===mid);
+          m.save();
+          if (fontData.txt) fontData.txt = App.util.sanitize(fontData.txt);
+          m.qt.setProp(d,x,y,'font',fontData);
+          f.dirty=true;
+          App.Logger.log('setText',{id:mid,d,x,y,text:fontData.txt});
+          return true;
+        },
+        undo:()=>{ 
+          const f=App.Model.FrameManager.current(); 
+          const m=f.modules.find(x=>x.id===mid); 
+          m.undo(); 
+        }
+      };
+    }
+    function cmdAddPointer(mid,d,x,y,tid){
+      return {
+        name: 'addPointer',
+        do:()=>{
+          const f=App.Model.FrameManager.current();
+          const m=f.modules.find(x=>x.id===mid);
+          m.save();
+          m.qt.setProp(d,x,y,'pointer',{frame:tid});
+          f.dirty=true;
+          App.Logger.log('addPointer',{id:mid,d,x,y,tid});
+          return true;
+        },
+        undo:()=>{ const f=App.Model.FrameManager.current(); const m=f.modules.find(x=>x.id===mid); m.undo(); }
+      };
+    }
+    function cmdMoveModule(mid, newX, newY) {
+      const f = App.Model.FrameManager.current();
+      const m = f.modules.find(x => x.id === mid);
+      const oldX = m.x, oldY = m.y;
+      return {
+        name: 'moveModule',
+        do: () => {
+          m.move(newX, newY);
+          App.Logger.log('moveModule', {id:mid, from: {x:oldX, y:oldY}, to: {x:newX, y:newY}});
+          return true;
+        },
+        undo: () => {
+          m.move(oldX, oldY);
+        }
+      };
+    }
+    function cmdResetCell(mid, d, x, y) {
+      return {
+        name: 'resetCell',
+        do: () => {
+          const f = App.Model.FrameManager.current();
+          const m = f.modules.find(mod => mod.id === mid);
+          if (m) {
+            m.resetCell(d, x, y);
+            App.Logger.log('resetCell', {id: mid, depth: d, x, y});
+            return true;
+          }
+          return false;
+        },
+        undo: () => {
+          const f = App.Model.FrameManager.current();
+          const m = f.modules.find(mod => mod.id === mid);
+          if (m) m.undo();
+        }
+      };
+    }
+    function setup(){
+      document.getElementById('btn-newFrame').onclick = () => showNewFrameDialog();
+      document.getElementById('btn-export').onclick = () => App.View.CanvasRenderer.exportAsPNG();
+      document.getElementById('btn-import').onclick = importSessionDialog;
+      const c=document.getElementById('c');
+      c.onclick=e=>{
+        if(e.detail===2){
+          const r=c.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+          const hit=App.Model.FrameManager.current().hitTest(x,y);
+          if(hit.cell&&hit.cell.pointer){
+            const idx=App.Model.FrameManager.frames.findIndex(f=>f.id===hit.cell.pointer.frame);
+            App.Model.FrameManager.switch(idx);
+          }
+        }
+      };
+      c.oncontextmenu=e=>{
+        e.preventDefault();
+        const r=c.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+        const hit=App.Model.FrameManager.current().hitTest(x,y);
+        if(hit.module){
+          showCellMenu(hit,e.clientX,e.clientY);
+        } else {
+          showCanvasMenu(hit,e.clientX,e.clientY);
+        }
+      };
+      c.onmousedown = e => {
+        if (e.button !== 0) return;
+        const r = c.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+        const hit = App.Model.FrameManager.current().hitTest(x, y);
+        if (hit && hit.module) {
+          const cellSize = App.Model.FrameManager.current().cellSize;
+          dragState = {
+            moduleId: hit.module.id,
+            startX: hit.module.x,
+            startY: hit.module.y,
+            mouseStartX: Math.floor(x / cellSize),
+            mouseStartY: Math.floor(y / cellSize),
+            moved: false
+          };
+          document.body.classList.add('module-dragging');
+          document.addEventListener('mousemove', handleModuleDrag);
+          document.addEventListener('mouseup', endModuleDrag);
+        }
+      };
+      document.addEventListener('paste', (e) => {
+        if (!window.activeQuadratePasteTarget) return;
+        const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+        for (const item of items) {
+          if (item.type.indexOf('image') === 0) {
+            const blob = item.getAsFile();
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+              handleImage(blob, window.activeQuadratePasteTarget);
+              window.activeQuadratePasteTarget = null;
+              document.getElementById('paste-indicator').classList.remove('active');
+            };
+            reader.readAsDataURL(blob);
+            e.preventDefault();
+            return;
+          }
+        }
+      });
+      const cw=document.getElementById('canvasWrap');
+      cw.ondragover=e=>{e.preventDefault();if(!cw.querySelector('.drag-highlight')){
+        const dh=document.createElement('div');dh.className='drag-highlight';
+        dh.style.width='100%';dh.style.height='100%';cw.appendChild(dh);
+      }};
+      cw.ondragleave=e=>{
+        const dh=cw.querySelector('.drag-highlight'); if(dh)dh.remove();
+      };
+      cw.ondrop=e=>{
+        e.preventDefault();const dh=cw.querySelector('.drag-highlight');if(dh)dh.remove();
+        if(e.dataTransfer.files.length){
+          const file=e.dataTransfer.files[0];
+          if(file.type.startsWith('image/')){
+            const r=c.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+            const hit=App.Model.FrameManager.current().hitTest(x,y);
+            if(hit.module)handleImage(file,hit);
+          } else if(file.type === 'application/json' || file.name.endsWith('.json')) {
+            const reader = new FileReader();
+            reader.onload = (event) => { importSession(event.target.result); };
+            reader.readAsText(file);
+          }
+        }
+      };
+      document.addEventListener('keydown',e=>{
+        if((e.ctrlKey||e.metaKey)&&e.key==='z'){undo();e.preventDefault();}
+        if((e.ctrlKey||e.metaKey)&&['ArrowLeft','ArrowRight'].includes(e.key)){
+          const dir=e.key==='ArrowLeft'?-1:1;
+          const N=App.Model.FrameManager.frames.length,ci=App.Model.FrameManager.idx;
+          App.Model.FrameManager.switch((ci+dir+N)%N);
+          e.preventDefault();
+        }
+        if (e.key === 'Escape') {
+          App.View.Menus.close();
+        }
+      });
+    }
+    function showNewFrameDialog() {
+      App.View.Overlays.showFrameConfig((config) => {
+        App.Model.FrameManager.create(config.rows, config.cols, config.cellSize);
+        App.util.announce(`Created new frame with ${config.rows} rows, ${config.cols} columns, and ${config.cellSize}px cell size`);
+      });
+    }
+    let lastDragUpdate = 0;
+    function handleModuleDrag(e) {
+      if (!dragState) return;
+      const now = performance.now();
+      if (now - lastDragUpdate < 16) { return; }
+      lastDragUpdate = now;
+      const c = document.getElementById('c');
+      const r = c.getBoundingClientRect();
+      const x = e.clientX - r.left, y = e.clientY - r.top;
+      const frame = App.Model.FrameManager.current();
+      const cellSize = frame.cellSize;
+      const gridX = Math.floor(x / cellSize);
+      const gridY = Math.floor(y / cellSize);
+      const offsetX = gridX - dragState.mouseStartX;
+      const offsetY = gridY - dragState.mouseStartY;
+      if (offsetX !== 0 || offsetY !== 0) {
+        dragState.moved = true;
+        const newX = dragState.startX + offsetX;
+        const newY = dragState.startY + offsetY;
+        const module = frame.modules.find(m => m.id === dragState.moduleId);
+        if (module) {
+          const originalX = module.x;
+          const originalY = module.y;
+          module.x = newX; module.y = newY;
+          if (!frame.checkCollision(module)) {
+            frame.dirty = true;
+          }
+          module.x = originalX; module.y = originalY;
+        }
+      }
+    }
+    function endModuleDrag(e) {
+      document.removeEventListener('mousemove', handleModuleDrag);
+      document.removeEventListener('mouseup', endModuleDrag);
+      document.body.classList.remove('module-dragging');
+      document.querySelectorAll('.drag-highlight').forEach(el => el.remove());
+      if (!dragState || !dragState.moved) { dragState = null; return; }
+      const c = document.getElementById('c');
+      const r = c.getBoundingClientRect();
+      const x = e.clientX - r.left, y = e.clientY - r.top;
+      const frame = App.Model.FrameManager.current();
+      const cellSize = frame.cellSize;
+      const gridX = Math.floor(x / cellSize);
+      const gridY = Math.floor(y / cellSize);
+      const offsetX = gridX - dragState.mouseStartX;
+      const offsetY = gridY - dragState.mouseStartY;
+      const newX = dragState.startX + offsetX;
+      const newY = dragState.startY + offsetY;
+      const module = frame.modules.find(m => m.id === dragState.moduleId);
+      if (module) {
+        const originalX = module.x;
+        const originalY = module.y;
+        module.x = newX; module.y = newY;
+        const collision = frame.checkCollision(module);
+        module.x = originalX; module.y = originalY;
+        if (!collision) {
+          exec(cmdMoveModule(dragState.moduleId, newX, newY));
+        } else {
+          handleCollisionWithAdjust(module, newX, newY);
+        }
+      }
+      dragState = null;
+    }
+    function showCellMenu(hit,px,py){
+      const {module,depth,x,y} = hit;
+      const items=[
+        {label:'Split',icon:'split',handler:()=>exec(cmdSplit(module.id))},
+        {label:'Change Color',icon:'color',handler:()=>{
+          const cell = hit.cell;
+          const currentColor = App.Palette.get(cell.bg);
+          App.View.Overlays.showColorPicker(
+            currentColor, 
+            100, 
+            (colorData) => {
+              const ci = parseInt(document.getElementById('sel-colour').value);
+              exec(cmdSetColor(module.id, depth, x, y, ci));
+            }
+          );
+        }},
+        {label:'Edit Text',icon:'font',handler:()=>{
+          const cell = hit.cell;
+          const currentFont = cell.font || {};
+          App.View.Overlays.showFontEditor(
+            currentFont.txt || '',
+            currentFont.face || 'sans-serif',
+            currentFont.size || 14,
+            currentFont.col || '#000000',
+            currentFont.opacity || 100,
+            (fontData) => {
+              exec(cmdSetText(module.id, depth, x, y, fontData));
+            }
+          );
+        }},
+        {label:'Add Image',icon:'image',handler:()=>{
+          const i=App.util.createElement('input',{type:'file',accept:'image/*'});
+          i.onchange=e=>{if(e.target.files[0])handleImage(e.target.files[0],hit)};
+          i.click();
+        }},
+        {label:'Paste From Clipboard',icon:'paste',handler:()=>{
+          App.util.prepareCellForPaste(hit);
+        }},
+        {label:'Move Module',icon:'move',handler:()=>{
+          dragState = {
+            moduleId: module.id,
+            startX: module.x,
+            startY: module.y,
+            mouseStartX: module.x,
+            mouseStartY: module.y,
+            moved: false
+          };
+          document.body.classList.add('module-dragging');
+          document.addEventListener('mousemove', handleModuleDrag);
+          document.addEventListener('mouseup', endModuleDrag);
+          App.View.Menus.close();
+          App.util.announce("Move module with mouse and click to place");
+        }},
+        {type:'separator'},
+        {label:'Add Frame Pointer',icon:'pointer',handler:()=>showPointerWizard(module.id,depth,x,y)},
+        {type:'separator'},
+        {label:'Reset Cell',icon:'reset',handler:()=>exec(cmdResetCell(module.id, depth, x, y))},
+        {label:'Undo',icon:'undo',handler:()=>module.undo()}
+      ];
+      App.View.Menus.show(items,px,py);
+    }
+    function showCanvasMenu(hit,px,py){
+      const {gridX,gridY} = hit;
+      App.View.Menus.show([
+        {label:'Create Module',icon:'split',handler:()=>{
+          const ci=parseInt(document.getElementById('sel-colour').value);
+          const res=exec(cmdCreate(gridX,gridY,ci));
+          if(!res.success&&res.collision)handleCollision(res.collision);
+        }},
+        {label:'Search...',icon:'search',handler:()=>{
+          App.View.Overlays.showSearch();
+        }},
+        {label:'Export PNG',icon:'export',handler:()=>{
+          App.View.CanvasRenderer.exportAsPNG();
+        }}
+      ],px,py);
+    }
+    function handleCollision(existing){
+      App.View.Overlays.show('Collision Detected','Cannot place here--overlaps existing module.', [
+        {label:'OK'},
+        {label:'Adjust Position', primary:true, handler:()=>{ App.util.announce("Please try again in a different location."); }}
+      ]);
+    }
+    function handleCollisionWithAdjust(module, attemptedX, attemptedY) {
+      App.View.Overlays.show('Collision Detected', 
+        'Cannot place module at requested position due to collision with another module.', [
+        {label: 'Cancel'},
+        {label: 'Find Free Position', primary: true, handler: () => {
+          const frame = App.Model.FrameManager.current();
+          const freePos = App.util.findFreePosition(frame, attemptedX, attemptedY, module.size);
+          if (freePos) {
+            exec(cmdMoveModule(module.id, freePos.x, freePos.y));
+            App.util.announce(`Module moved to position (${freePos.x}, ${freePos.y})`);
+          } else {
+            App.View.Overlays.show('No Free Position', 
+              'Could not find a suitable free position for this module.', [
+              {label: 'OK'}
+            ]);
+          }
+        }}
+      ]);
+    }
+    function showPointerWizard(mid,depth,x,y){
+      const fr=App.Model.FrameManager,cur=fr.idx;
+      if(fr.frames.length<2){
+        App.View.Overlays.show('Add Frame Pointer','Create more frames first.',[{label:'OK'}]);
+        return;
+      }
+      const sel=App.util.createElement('select',{style:{width:'100%',padding:'8px',marginBottom:'15px'}},[]);
+      fr.frames.forEach((f,i)=>i!==cur&&sel.appendChild(App.util.createElement('option',{value:f.id},[`Frame ${i}`])));
+      App.View.Overlays.show('Add Frame Pointer',sel,[
+        {label:'Cancel'},
+        {label:'Add',primary:true,handler:()=>exec(cmdAddPointer(mid,depth,x,y,sel.value))}
+      ]);
+    }
+    function handleImage(file,hit){
+      const {module,depth,x,y} = hit;
+      const r=new FileReader();
+      r.onload=e=>{
+        const dataUrl = e.target.result;
+        const isAnimated = App.util.isGIF(dataUrl);
+        const id='img-'+App.util.uid();
+        App.Media.addImage(id, dataUrl, isAnimated);
+        App.Logger.log('addImage',{ id, mid:module.id, depth, x, y, isAnimated, size: Math.round(dataUrl.length/1024) + 'KB' });
+        module.save();
+        module.qt.setProp(depth,x,y,'img',id);
+        module.frame.dirty=true;
+      };
+      r.readAsDataURL(file);
+    }
+    function exportSession(){
+      const S={
+        v:1,
+        palette:App.Palette.colors,
+        frames:App.Model.FrameManager.frames.map(f=>({
+          rows:f.rows,cols:f.cols,cellSize:f.cellSize,
+          modules:f.modules.map(m=>({
+            id:m.id,x:m.x,y:m.y,size:m.size,depth:m.depth,
+            cells:m.qt.cells
+          }))
+        })),
+        log:App.Logger.entries()
+      };
+      const B=new Blob([JSON.stringify(S)],{type:'application/json'});
+      const U=URL.createObjectURL(B);
+      const a=document.createElement('a');a.href=U;a.download='session.json';a.click();
+      setTimeout(()=>URL.revokeObjectURL(U),100);
+      App.Logger.log('exportSession');
+    }
+    function importSessionDialog() {
+      const input = App.util.createElement('input', {
+        type: 'file',
+        accept: '.json,application/json',
+        style: { marginBottom: '15px', width: '100%' }
+      });
+      App.View.Overlays.show('Import Session', 
+        App.util.createElement('div', {}, [ App.util.createElement('p', {}, ['Select a previously exported session file to import:']), input ]), [
+        {label: 'Cancel'},
+        {label: 'Import', primary: true, handler: () => {
+          if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => { const success = importSession(e.target.result); if (success) { App.util.announce("Session imported successfully"); } };
+            reader.readAsText(input.files[0]);
+          }
+        }}
+      ]);
+    }
+    function importSession(json){
+      try {
+        const data = JSON.parse(json);
+        if(data.v !== 1) {
+          App.View.Overlays.show('Import Error', `Unsupported session version: ${data.v}. This editor supports version 1.`, [{label: 'OK'}]);
+          return false;
+        }
+        App.Model.FrameManager.clear();
+        if(data.palette && Array.isArray(data.palette)) {
+          data.palette.forEach((color, idx) => {
+            if(idx < App.Palette.colors.length) { App.Palette.colors[idx] = color; }
+            else { App.Palette.add(color); }
+          });
+          App.Palette.updateCSS();
+        }
+        if(data.frames && Array.isArray(data.frames)) {
+          data.frames.forEach(f => {
+            const frame = App.Model.FrameManager.create(f.rows, f.cols, f.cellSize);
+            if(f.modules && Array.isArray(f.modules)) {
+              f.modules.forEach(m => {
+                const module = new App.Model.Module(frame, m.x, m.y, m.size, m.depth);
+                module.id = m.id;
+                if(m.cells && Array.isArray(m.cells)) { module.qt.cells = m.cells.map(c => ({...c})); }
+                frame.addModule(module);
+              });
+            }
+          });
+        }
+        if(App.Model.FrameManager.frames.length > 0) {
+          App.Model.FrameManager.switch(0);
+        }
+        App.Logger.log('importSession', {success: true});
+        return true;
+      } catch(e) {
+        console.error('Failed to import session:', e);
+        App.View.Overlays.show('Import Error', 'Failed to import session: ' + e.message, [ {label: 'OK'} ]);
+        App.Logger.log('importSession', {success: false, error: e.message});
+        return false;
+      }
+    }
+    return { exec, undo, init: setup, importSession, showNewFrameDialog };
+  })();
+
+  // Notification System
+  const NotificationSystem = {
+    container: null,
+    init() {
+      this.container = App.util.createElement('div', { className: 'me-notifications-container', style: { position: 'fixed', bottom: '20px', right: '20px', zIndex: 5000, display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '300px' } });
+      document.body.appendChild(this.container);
+    },
+    show(message, type = 'info', duration = 3000) {
+      if (!this.container) this.init();
+      const notification = App.util.createElement('div', { className: `me-notification me-notification-${type}`, style: { backgroundColor: 'var(--me-bg-medium)', color: 'var(--me-text)', border: 'var(--me-border)', borderLeft: `4px solid ${type === 'error' ? 'var(--me-red)' : 'var(--me-blue)'}`, padding: '10px 15px', boxShadow: 'var(--me-glow)', marginTop: '10px', opacity: '0', transition: 'opacity 0.3s' } }, [message]);
+      this.container.appendChild(notification);
+      setTimeout(() => { notification.style.opacity = '1'; }, 10);
+      setTimeout(() => { notification.style.opacity = '0'; setTimeout(() => { if (this.container.contains(notification)) { this.container.removeChild(notification); } }, 300); }, duration);
+      return notification;
+    }
+  };
+
+  const meStyle = document.createElement('style');
+  meStyle.textContent = `
+    .theme-transition { transition: background-color 0.5s, color 0.5s; }
+    .theme-transition * { transition: border-color 0.5s, background-color 0.5s, box-shadow 0.5s; }
+    .me-button-pulse { position: absolute; top: 0; left: 0; right: 0; bottom: 0; border: 1px solid var(--me-blue); animation: borderPulse 2s infinite; pointer-events: none; }
+    .context-menu.visible { opacity: 1; pointer-events: all; animation: meSlideIn 150ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .context-menu.hiding { animation: meSlideOut 100ms cubic-bezier(0.7, 0, 0.84, 0) forwards; }
+    @keyframes meSlideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes meSlideOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(5px); } }
+    .context-menu-icon svg { fill: var(--me-blue-light); }
+    #c { background-image: repeating-linear-gradient(to right, var(--me-grid-line) 0, var(--me-grid-line) 1px, transparent 1px, transparent 100%), repeating-linear-gradient(to bottom, var(--me-grid-line) 0, var(--me-grid-line) 1px, transparent 1px, transparent 100%); transition: background-size 0.3s; }
+    button:focus, select:focus, input:focus { outline: none; box-shadow: 0 0 0 2px var(--me-blue), var(--me-glow); }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+    .pointer-tooltip { position: absolute; background-color: var(--me-bg-medium) !important; border: var(--me-border) !important; box-shadow: var(--me-glow) !important; color: var(--me-text) !important; padding: 5px 10px; border-radius: 0 !important; font-size: 12px; pointer-events: none; z-index: 100; transform: translateX(-50%); white-space: nowrap; }
+    .pointer-tooltip:after { content: ''; position: absolute; bottom: -5px; left: 50%; margin-left: -5px; width: 10px; height: 5px; background-color: var(--me-bg-medium); clip-path: polygon(0 0, 100% 0, 50% 100%); }
+    .cell-paste-focus { outline: 2px dashed var(--me-blue) !important; box-shadow: 0 0 10px var(--me-blue-light) !important; animation: pulseBorder 1.5s infinite !important; }
+    @keyframes pulseBorder { 0%, 100% { outline-color: var(--me-blue); } 50% { outline-color: var(--me-blue-light); } }
+    .context-menu button { border-left: 3px solid transparent; }
+    .context-menu button:hover, .context-menu button:focus { border-left: 3px solid var(--me-blue); background-color: var(--me-blue-dark); }
+    @keyframes notifyFadeIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+    .me-notification { animation: notifyFadeIn 0.3s forwards; }
+  `;
+  document.head.appendChild(meStyle);
+
+  const originalAnnounce = App.util.announce;
+  App.util.announce = function(message) {
+    originalAnnounce(message);
+    NotificationSystem.show(message);
+  };
+
+  document.addEventListener('paste', (e) => {
+    if (!window.activeQuadratePasteTarget) return;
+    const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+    for (const item of items) {
+      if (item.type.indexOf('image') === 0) {
+        App.util.showLoadingIndicator('Processing image...');
+        const blob = item.getAsFile();
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          const hit = window.activeQuadratePasteTarget;
+          const { module, depth, x, y } = hit;
+          const dataUrl = evt.target.result;
+          const isAnimated = App.util.isGIF(dataUrl);
+          const id = 'img-' + App.util.uid();
+          App.Media.addImage(id, dataUrl, isAnimated);
+          App.Logger.log('addImage', { id, mid: module.id, depth, x, y, isAnimated, size: Math.round(dataUrl.length / 1024) + 'KB' });
+          module.save();
+          module.qt.setProp(depth, x, y, 'img', id);
+          module.frame.dirty = true;
+          window.activeQuadratePasteTarget = null;
+          document.getElementById('paste-indicator').classList.remove('active');
+          document.querySelectorAll('.cell-paste-focus').forEach(el => el.remove());
+          setTimeout(() => { App.util.hideLoadingIndicator(); App.util.announce("Image pasted successfully"); }, 300);
+        };
+        reader.readAsDataURL(blob);
+        e.preventDefault();
+        return;
+      }
+    }
+    App.util.announce("No image found in clipboard");
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    App.Palette.init();
+    App.Controller.init();
+    App.Model.FrameManager.create();
+    App.View.start();
+    const p = new URLSearchParams(location.search).get('session');
+    if(p) { 
+    try { App.Controller.importSession(decodeURIComponent(p)); } catch(e) { console.error('Failed to import session from URL:', e); } }
+    App.Logger.log('init', {t: Date.now()});
+  });
+  </script>
+</body>
+</html>
