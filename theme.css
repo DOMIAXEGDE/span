@@ -390,3 +390,6 @@ canvas:focus {
   100% { box-shadow: 0 0 0 0 rgba(10, 151, 213, 0); }
 }
 
+body.frame-switch #canvasWrap {
+  animation: borderPulse 0.6s;
+}

@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SPAN Theoretic Engineering Science Editor</title>
   <link rel="stylesheet" href="theme.css">
-
   <!-- Inline SVG sprite and metadata, script and styles inserted below -->
 </head>
 <body>
@@ -14,6 +13,7 @@
     <button id="btn-export">Export PNG</button>
     <button id="btn-import">Import JSON</button>
     <select id="sel-colour" aria-label="Colour palette"></select>
+    <select id="sel-frame" aria-label="Select Frame"></select>
     <span id="lbl-fps" aria-live="polite"></span>
   </div>
   <div id="canvasWrap">
@@ -159,13 +159,31 @@
         pasteIndicator.classList.remove('active');
       }, 3000);
     }
+    function haptic(pattern = 50) {
+      if (navigator.vibrate) {
+        navigator.vibrate(pattern);
+      }
+    }
     return {
       fuzzySearch, createElement, findFreePosition, clamp, uid,
       sanitize, announce, isGIF, clearTooltips,
-      showLoadingIndicator, hideLoadingIndicator, prepareCellForPaste
+      showLoadingIndicator, hideLoadingIndicator, prepareCellForPaste,
+      haptic
     };
   })();
 
+  function updateFrameSelector() {
+    const sel = document.getElementById('sel-frame');
+    if (!sel) return;
+    sel.innerHTML = '';
+    App.Model.FrameManager.frames.forEach((f, i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = `Frame ${i}`;
+      sel.appendChild(opt);
+    });
+    sel.value = App.Model.FrameManager.idx;
+  }
 
   // ---------- Palette ----------
   App.Palette = (function() {
@@ -471,6 +489,10 @@
         const f=new Frame(rows,cols,cellSize);
         this.frames.push(f); this.idx=this.frames.length-1;
         App.Logger.log('createFrame',{id:f.id,index:this.idx, rows, cols, cellSize});
+        updateFrameSelector();
+        App.util.haptic(50);
+        document.body.classList.add('frame-switch');
+        setTimeout(() => document.body.classList.remove('frame-switch'), 600);
         return f;
       },
       current(){return this.frames[this.idx]||null;},
@@ -479,6 +501,10 @@
           this.idx=i; this.current().dirty=true;
           App.Logger.log('switchFrame',{index:i});
           App.util.announce(`Switched to frame ${i}`);
+          updateFrameSelector();
+          App.util.haptic(50);
+          document.body.classList.add('frame-switch');
+          setTimeout(() => document.body.classList.remove('frame-switch'), 600);
           return true;
         }
         return false;
@@ -486,6 +512,7 @@
       clear(){
         this.frames = [];
         this.idx = 0;
+        updateFrameSelector();
       },
       search(query) {
         return this.frames.flatMap((frame, frameIdx) => {
@@ -1138,6 +1165,12 @@
       document.getElementById('btn-newFrame').onclick = () => showNewFrameDialog();
       document.getElementById('btn-export').onclick = () => App.View.CanvasRenderer.exportAsPNG();
       document.getElementById('btn-import').onclick = importSessionDialog;
+      document.getElementById('sel-frame').onchange = e => {
+        const idx = parseInt(e.target.value, 10);
+        if(!isNaN(idx)) {
+          App.Model.FrameManager.switch(idx);
+        }
+      };
       const c=document.getElementById('c');
       c.onclick=e=>{
         if(e.detail===2){
@@ -1502,8 +1535,9 @@
         if(App.Model.FrameManager.frames.length > 0) {
           App.Model.FrameManager.switch(0);
         }
-        App.Logger.log('importSession', {success: true});
-        return true;
+        updateFrameSelector();
+      App.Logger.log('importSession', {success: true});
+      return true;
       } catch(e) {
         console.error('Failed to import session:', e);
         App.View.Overlays.show('Import Error', 'Failed to import session: ' + e.message, [ {label: 'OK'} ]);
