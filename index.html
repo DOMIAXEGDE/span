@@ -12,6 +12,7 @@
     <button id="btn-newFrame">New Frame</button>
     <button id="btn-export">Export PNG</button>
     <button id="btn-import">Import JSON</button>
+    <button id="btn-refreshVars">Update Vars</button>
     <select id="sel-colour" aria-label="Colour palette"></select>
     <select id="sel-frame" aria-label="Select Frame"></select>
     <span id="lbl-fps" aria-live="polite"></span>
@@ -185,6 +186,13 @@
     sel.value = App.Model.FrameManager.idx;
   }
 
+  function refreshAllVariables() {
+    if (App.Palette.updateCSS) App.Palette.updateCSS();
+    App.Model.FrameManager.frames.forEach(f => { f.dirty = true; });
+    updateFrameSelector();
+    App.util.announce('Variables refreshed across frames');
+  }
+
   // ---------- Palette ----------
   App.Palette = (function() {
     const base = ["#141414","#FFFFFF","#FF3366","#00B0FF","#FFD600","#4CAF50","#795548","#9C27B0","#FF9800","#607D8B"];
@@ -205,7 +213,7 @@
     function get(i){return base[i]||base[0];}
     function add(c){base.push(c);updateCSS();subs.forEach(fn=>fn(c));return base.length-1;}
     function on(fn){subs.push(fn);}
-    return { init, get, add, on, get colors(){return[...base]} };
+    return { init, get, add, on, updateCSS, get colors(){return[...base]} };
   })();
 
   // ---------- Logger ----------
@@ -1165,6 +1173,7 @@
       document.getElementById('btn-newFrame').onclick = () => showNewFrameDialog();
       document.getElementById('btn-export').onclick = () => App.View.CanvasRenderer.exportAsPNG();
       document.getElementById('btn-import').onclick = importSessionDialog;
+      document.getElementById('btn-refreshVars').onclick = refreshAllVariables;
       document.getElementById('sel-frame').onchange = e => {
         const idx = parseInt(e.target.value, 10);
         if(!isNaN(idx)) {
